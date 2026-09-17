@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fase 5 · Renderizado y Listas — OdontoSite (respaldo offline)</title>
+<style>
+  :root { --p:#0f766e; }
+  * { box-sizing: border-box; margin: 0; }
+  body { font-family: system-ui, sans-serif; background: #fafaf9; color: #1c1917; padding: 2rem; }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  h1 { font-size: 1.6rem; margin-bottom: .25rem; } h2 { font-size: 1.05rem; margin: 1.4rem 0 .7rem; color: var(--p); }
+  .badge { display: inline-block; background: #1c1917; color: #fff; font-size: .7rem; padding: .2rem .7rem; border-radius: 999px; }
+  button { border: 1px solid #d6d3d1; background: #fff; padding: .4rem .9rem; border-radius: 999px; font-size: .75rem; font-weight: 600; cursor: pointer; margin-right: .4rem; }
+  button.on { background: #1c1917; color: #fff; border-color: #1c1917; }
+  .list { background: #fff; border: 1px solid #e7e5e4; border-radius: 12px; height: 260px; overflow: auto; margin: .8rem 0; }
+  .row { padding: .55rem .9rem; border-bottom: 1px solid #f5f5f4; font-size: .78rem; display: flex; justify-content: space-between; }
+  .counter { font-size: .75rem; color: #57534e; background: #f5f5f4; display: inline-block; padding: .25rem .7rem; border-radius: 999px; font-family: ui-monospace, monospace; }
+  .preview { border-radius: 14px; overflow: hidden; border: 2px dashed #d6d3d1; margin-top: .6rem; }
+  .hero { padding: 2rem; color: #fff; background: linear-gradient(110deg, var(--p), color-mix(in srgb, var(--p) 40%, transparent)); }
+  .hero h3 { font-size: 1.3rem; } .hero p { font-size: .8rem; opacity: .85; margin-top: .3rem; }
+  .btn { background: var(--p); color: #fff; border-radius: 999px; padding: .5rem 1.2rem; font-size: .75rem; font-weight: 700; display: inline-block; margin-top: .8rem; }
+  .body2 { padding: 1rem; background: #fff; font-size: .75rem; }
+  ul { padding-left: 1.1rem; font-size: .8rem; } li { margin: .3rem 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="badge">RESPALDO OFFLINE · FASE 5</span>
+  <h1>Renderizado y Listas</h1>
+
+  <h2>1 · Virtualización (en la app: 10 / 100 / 1000 + contador DOM real)</h2>
+  <div>
+    <button class="on" onclick="make(10)">10</button>
+    <button onclick="make(100)">100</button>
+    <button onclick="make(1000)">1000</button>
+    <button onclick="toggle()">Virtualización: ON/OFF</button>
+    <span class="counter" id="counter"></span>
+    <div class="list" id="list"></div>
+  </div>
+
+  <h2>2 · Tema en vivo (paletas + tipografías sin recargar)</h2>
+  <div>
+    <button onclick="setP('#0f766e','#f0fdfa','#5eead4')">Turquesa</button>
+    <button onclick="setP('#047857','#ecfdf5','#6ee7b7')">Esmeralda</button>
+    <button onclick="setP('#9f1239','#fff1f2','#fda4af')">Vino</button>
+    <button onclick="setP('#b45309','#fffbeb','#fcd34d')">Ámbar</button>
+    <div class="preview" id="pv">
+      <div class="hero"><h3>Tu mejor sonrisa</h3><p>El sitio público cambia sin recargar (mutación Zustand + CSS variables).</p><span class="btn">Reservar cita</span></div>
+      <div class="body2">Cuerpo del sitio · <b style="color:var(--p)">$35.00</b></div>
+    </div>
+  </div>
+
+  <h2>3 · Estrategia (resumen)</h2>
+  <ul>
+    <li>Servicios en home: <b>Array.map + React.memo + key={service.id}</b> (prohibido índice).</li>
+    <li>Pedidos admin: <b>@tanstack/react-virtual</b> (solo se montan los visibles).</li>
+    <li>Calendario: carga por <b>rango visible from/to</b> — nunca el histórico completo.</li>
+    <li>Editor: renderizado por secciones (SiteContent JSONB → HeroSection, ServicesSection…).</li>
+    <li>Tema: variables CSS inyectadas desde tenant.config.theme — cambio sin recarga.</li>
+    <li>Imágenes: <b>next/image con sizes</b> correctos por breakpoint.</li>
+  </ul>
+
+<script>
+  let size = 10, virtual = true, mounted = 0
+  const list = document.getElementById('list')
+  function counter() { document.getElementById('counter').textContent = 'nodos en DOM: ' + mounted + ' / ' + size }
+  function make(n) {
+    size = n; mounted = 0
+    document.querySelectorAll('button')[0].classList.remove('on')
+    document.querySelectorAll('button')[1].classList.remove('on')
+    document.querySelectorAll('button')[2].classList.remove('on')
+    event.target.classList.add('on')
+    render()
+  }
+  function toggle() { virtual = !virtual; render() }
+  function render() {
+    list.innerHTML = ''
+    if (virtual) {
+      // simulación del concepto: se crean solo ~10 nodos
+      for (let i = 0; i < Math.min(10, size); i++) addRow(i)
+      const ghost = document.createElement('div')
+      ghost.style.height = Math.max(0, (size - 10) * 38) + 'px'
+      ghost.textContent = ' '
+      list.appendChild(ghost)
+    } else {
+      for (let i = 0; i < size; i++) addRow(i)
+    }
+    counter()
+  }
+  function addRow(i) {
+    mounted++
+    const d = document.createElement('div')
+    d.className = 'row'
+    d.innerHTML = '<span>Pedido #' + (1000 + i) + '</span><span>$' + (25 + (i * 13) % 400).toFixed(2) + '</span>'
+    list.appendChild(d)
+  }
+  function setP(p, s, a) {
+    const pv = document.getElementById('pv')
+    pv.style.setProperty('--p', p)
+    pv.querySelector('.hero').style.background = 'linear-gradient(110deg,' + p + ', ' + p + '66)'
+    pv.querySelector('.btn').style.background = p
+  }
+  render()
+</script>
+</div>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fase 3 · Contratos API — OdontoSite (respaldo offline)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  body { font-family: system-ui, sans-serif; background: #fafaf9; color: #1c1917; padding: 2rem; }
+  .wrap { max-width: 1000px; margin: 0 auto; }
+  h1 { font-size: 1.6rem; margin-bottom: .25rem; }
+  .badge { display: inline-block; background: #1c1917; color: #fff; font-size: .7rem; padding: .2rem .7rem; border-radius: 999px; }
+  input { width: 100%; padding: .55rem .9rem; border: 1px solid #d6d3d1; border-radius: 999px; margin: 1rem 0; font-size: .85rem; }
+  table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 10px; overflow: hidden; font-size: .78rem; }
+  th { background: #f5f5f4; text-align: left; padding: .5rem .6rem; font-size: .65rem; text-transform: uppercase; }
+  td { padding: .45rem .6rem; border-top: 1px solid #f0efee; }
+  code, .mono { font-family: ui-monospace, monospace; font-size: .72rem; }
+  .m { font-weight: 700; border-radius: 5px; padding: .08rem .4rem; font-size: .65rem; }
+  .get { background: #d1fae5; color: #065f46; } .post { background: #fef3c7; color: #92400e; }
+  .put { background: #e0f2fe; color: #075985; } .del { background: #ffe4e6; color: #9f1239; }
+  p.note { font-size: .8rem; color: #78716c; margin: .8rem 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="badge">RESPALDO OFFLINE · FASE 3</span>
+  <h1>Contratos API (resumen)</h1>
+  <p class="note">Todos los GET de listas aceptan <b>?limit=&cursor=</b>. Envelope: <span class="mono">{ data, meta }</span> · errores <span class="mono">{ error: { code, message, details } }</span>. La versión interactiva con "Try it" real está en la app → Fases 1–5 → Fase 3.</p>
+  <input placeholder="🔍 (en la app esta tabla es filtrable en vivo)">
+  <table id="t"><tr><th>Método</th><th>Ruta</th><th>Descripción</th></tr></table>
+  <script>
+    const rows = [
+      ['GET','/api/[slug]/content','Contenido editable por secciones','pub'],
+      ['GET','/api/[slug]/tenant','Info del tenant: tema, contacto, horarios','pub'],
+      ['GET','/api/[slug]/services?limit=&cursor=','Catálogo con cursor','pub'],
+      ['GET','/api/[slug]/professionals','Equipo activo','pub'],
+      ['GET','/api/[slug]/locations','Sedes','pub'],
+      ['GET','/api/[slug]/availability?serviceId=&date=','Slots disponibles','pub'],
+      ['POST','/api/[slug]/appointments','Crear reserva (revalida server-side)','pub'],
+      ['POST','/api/[slug]/appointments/[id]/cancel?token=','Cancelar por paciente','pub'],
+      ['POST','/api/[slug]/orders','Pedido carrito → bandeja + URL WhatsApp','pub'],
+      ['POST','/api/admin/auth/login','Login (set-cookie JWT httpOnly)','adm'],
+      ['GET','/api/admin/auth/me','Usuario actual','adm'],
+      ['POST','/api/admin/auth/logout','Cerrar sesión','adm'],
+      ['GET','/api/admin/overview','Métricas del dashboard','adm'],
+      ['GET/PUT','/api/admin/content[/[section]]','Editor por secciones','adm'],
+      ['GET/POST','/api/admin/services[/[id]]','CRUD + passthrough → metadata','adm'],
+      ['GET/POST','/api/admin/professionals[/[id]]','CRUD + disponibilidad','adm'],
+      ['GET/POST','/api/admin/locations[/[id]]','CRUD sedes','adm'],
+      ['GET/POST/DEL','/api/admin/availability','Ventanas horarias','adm'],
+      ['GET/POST','/api/admin/appointments','Lista por rango + alta manual','adm'],
+      ['POST','/api/admin/appointments/block','Bloqueo manual de agenda','adm'],
+      ['POST','/api/admin/appointments/[id]/cancel|confirm','Cancelar / confirmar','adm'],
+      ['GET','/api/admin/orders?cursor=','Bandeja de pedidos','adm'],
+      ['PUT','/api/admin/orders/[id]','Cambiar estado','adm'],
+      ['GET/POST','/api/admin/invoices','Lista / generar desde Order','adm'],
+      ['GET','/api/admin/invoices/[id]/pdf','PDF (LocalPdfInvoiceProvider)','adm'],
+      ['POST','/api/admin/invoices/[id]/send-email','Enviar (ConsoleEmailProvider)','adm'],
+      ['GET/PUT','/api/admin/tenant','Perfil + config + tema','adm'],
+      ['POST','/api/admin/upload','Subida de imágenes (StorageProvider)','adm'],
+      ['GET/POST','/api/super-admin/tenants','Gestión de tenants','sup'],
+    ]
+    const t = document.getElementById('t')
+    for (const [m, p, d] of rows) {
+      const tr = document.createElement('tr')
+      const method = m.split('/')[0].toUpperCase()
+      const cls = { GET: 'get', POST: 'post', PUT: 'put', DELETE: 'del' }[method] || 'get'
+      tr.innerHTML = `<td><span class="m ${cls}">${m}</span></td><td><code>${p}</code></td><td>${d}</td>`
+      t.appendChild(tr)
+    }
+  </script>
+</div>
+</body>
+</html>

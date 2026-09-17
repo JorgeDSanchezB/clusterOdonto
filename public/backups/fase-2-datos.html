@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fase 2 · Modelado de Datos — OdontoSite (respaldo offline)</title>
+<style>
+  :root { --p:#0f766e; }
+  * { box-sizing: border-box; margin: 0; }
+  body { font-family: system-ui, sans-serif; background: #fafaf9; color: #1c1917; padding: 2rem; }
+  .wrap { max-width: 1000px; margin: 0 auto; }
+  h1 { font-size: 1.6rem; margin-bottom: .25rem; } h2 { font-size: 1.05rem; margin: 1.5rem 0 .75rem; color: var(--p); }
+  .badge { display: inline-block; background: #1c1917; color: #fff; font-size: .7rem; padding: .2rem .7rem; border-radius: 999px; }
+  .grid { display: grid; gap: .8rem; grid-template-columns: repeat(auto-fill,minmax(240px,1fr)); }
+  .ent { background: #fff; border: 1px solid #e7e5e4; border-left: 4px solid var(--p); border-radius: 10px; padding: .8rem; }
+  .ent h3 { font-size: .85rem; margin-bottom: .4rem; }
+  .ent code { display: block; font-size: .68rem; color: #57534e; margin: .12rem 0; }
+  .ent code.pk { color: #1c1917; font-weight: 700; }
+  table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 10px; overflow: hidden; font-size: .78rem; }
+  th { background: #f5f5f4; text-align: left; padding: .5rem .6rem; font-size: .68rem; text-transform: uppercase; letter-spacing: .05em; }
+  td { padding: .5rem .6rem; border-top: 1px solid #f0efee; }
+  code.meta { background: #ecfdf5; color: #065f46; padding: .1rem .35rem; border-radius: 5px; font-size: .7rem; }
+  p.note { font-size: .8rem; color: #78716c; margin-top: .5rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="badge">RESPALDO OFFLINE · FASE 2</span>
+  <h1>Modelado de Datos — ER y metadata extensible</h1>
+
+  <h2>Diagrama Entidad–Relación (resumen)</h2>
+  <div class="grid">
+    <div class="ent"><h3>Tenant</h3><code class="pk">id UUID PK</code><code>slug UNIQUE</code><code>name, ruc, address…</code><code>ivaPercent 15</code><code>config JSONB (tema+agenda)</code></div>
+    <div class="ent"><h3>User</h3><code class="pk">id UUID PK</code><code>email UNIQUE</code><code>passwordHash</code><code>role OWNER|STAFF|SUPER_ADMIN</code><code>tenantId FK</code></div>
+    <div class="ent"><h3>Professional</h3><code class="pk">id UUID PK</code><code>tenantId FK</code><code>name, specialty, photoUrl</code><code>active</code></div>
+    <div class="ent"><h3>Location</h3><code class="pk">id UUID PK</code><code>tenantId FK</code><code>name, address</code><code>lat, lng, mapQuery</code></div>
+    <div class="ent"><h3>Availability</h3><code class="pk">id UUID PK</code><code>professionalId FK</code><code>weekday 0–6</code><code>startMinute / endMinute</code></div>
+    <div class="ent"><h3>Service ★</h3><code class="pk">id UUID PK</code><code>tenantId FK</code><code>name, price, durationMin</code><code>imageUrl, active</code><code>metadata JSONB ← extensibilidad</code></div>
+    <div class="ent"><h3>Appointment</h3><code class="pk">id UUID PK</code><code>serviceId? professionalId FK</code><code>start / end (UTC)</code><code>status PENDING|CONFIRMED|CANCELLED|BLOCKED</code><code>cancelToken UNIQUE</code><code>metadata JSONB</code></div>
+    <div class="ent"><h3>Order</h3><code class="pk">id UUID PK</code><code>items JSONB (snapshot)</code><code>total, status</code><code>whatsappSentAt</code></div>
+    <div class="ent"><h3>Invoice</h3><code class="pk">id UUID PK</code><code>number "001-001-000000123"</code><code>subtotal/iva/total</code><code>items JSONB</code></div>
+    <div class="ent"><h3>Sequence</h3><code class="pk">id UUID PK</code><code>tenantId + prefix UNIQUE</code><code>lastNumber ↑ atómico</code></div>
+    <div class="ent"><h3>SiteContent</h3><code class="pk">id UUID PK</code><code>section: hero|about|…</code><code>data JSONB</code></div>
+  </div>
+  <p class="note">JSONB en PostgreSQL; en dev SQLite se guarda como String JSON (mismo dominio). Reglas: IEntity (id/createdAt/updatedAt) + Factories (ServiceFactory, AppointmentFactory, OrderFactory, InvoiceFactory, TenantFactory).</p>
+
+  <h2>Tabla Service con metadata poblada (datos demo)</h2>
+  <table>
+    <tr><th>Servicio</th><th>Precio</th><th>Duración</th><th>metadata (JSONB)</th></tr>
+    <tr><td>Limpieza y Profilaxis</td><td>$35.00</td><td>45 min</td><td><code class="meta">{"incluye":"Pulido y flúor","cada_meses":6}</code></td></tr>
+    <tr><td>Blanqueamiento</td><td>$120.00</td><td>60 min</td><td><code class="meta">{"sesiones_incluidas":1,"resultados_meses":6,"requiere_evaluacion_previa":true}</code></td></tr>
+    <tr><td>Ortodoncia con Brackets</td><td>$850.00</td><td>50 min</td><td><code class="meta">{"duracion_tratamiento_meses":24,"requiere_control_mensual":true,"incluye_retenedores":true,"financiamiento":"…"}</code></td></tr>
+    <tr><td>Endodoncia</td><td>$150.00</td><td>90 min</td><td><code class="meta">{"sesiones":2,"incluye_anestesia":true,"incluye_radiografia":true}</code></td></tr>
+    <tr><td>Implante Dental</td><td>$950.00</td><td>90 min</td><td><code class="meta">{"marcas_disponibles":"Straumann · Osstem · MIS","requiere_escaneo_3d":true,"garantia_anios":10}</code></td></tr>
+  </table>
+  <p class="note">Numeración de factura: Sequence con UNIQUE(tenantId, prefix) + incremento en transacción atómica → sin huecos ni colisiones entre odontólogos.</p>
+</div>
+</body>
+</html>

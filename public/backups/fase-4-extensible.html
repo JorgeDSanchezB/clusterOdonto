@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fase 4 · Inserción Extensible — OdontoSite (respaldo offline)</title>
+<style>
+  :root { --p:#0f766e; }
+  * { box-sizing: border-box; margin: 0; }
+  body { font-family: system-ui, sans-serif; background: #fafaf9; color: #1c1917; padding: 2rem; }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  h1 { font-size: 1.6rem; margin-bottom: .25rem; } h2 { font-size: 1.05rem; margin: 1.5rem 0 .75rem; color: var(--p); }
+  .badge { display: inline-block; background: #1c1917; color: #fff; font-size: .7rem; padding: .2rem .7rem; border-radius: 999px; }
+  .grid { display: grid; gap: 1rem; grid-template-columns: 1fr 1fr; }
+  .card, .step { background: #fff; border: 1px solid #e7e5e4; border-radius: 12px; padding: 1rem; }
+  .step { display: flex; gap: .7rem; align-items: flex-start; margin-bottom: .6rem; }
+  .n { background: var(--p); color: #fff; width: 22px; height: 22px; border-radius: 999px; display: grid; place-items: center; font-size: .7rem; font-weight: 700; flex-shrink: 0; }
+  label { font-size: .7rem; font-weight: 600; color: #57534e; }
+  input { width: 100%; padding: .45rem .6rem; border: 1px solid #d6d3d1; border-radius: 8px; margin: .2rem 0 .6rem; font-size: .8rem; font-family: ui-monospace, monospace; }
+  .card h3 { font-size: .9rem; margin-bottom: .6rem; }
+  .chip { display: inline-block; background: #f5f5f4; border: 1px solid #e7e5e4; border-radius: 999px; padding: .18rem .6rem; font-size: .68rem; margin: .15rem; }
+  .chip b { color: var(--p); }
+  .price { color: var(--p); font-weight: 800; font-size: 1.1rem; }
+  pre { background: #1c1917; color: #a7f3d0; padding: .9rem; border-radius: 10px; font-size: .72rem; overflow: auto; margin-top: .5rem; }
+  p.note { font-size: .8rem; color: #78716c; margin-top: .8rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="badge">RESPALDO OFFLINE · FASE 4</span>
+  <h1>Regla del “Servicio” — inserción extensible</h1>
+  <p class="note">Caso real: “Ortodoncia invisible” con atributos NUEVOS <b>{ alineadores: 20, duracion_meses: 18, requiere_escaneo_3d: true }</b> que NO existen en el schema. En la app este laboratorio es funcional (Fases 1–5 → Fase 4).</p>
+
+  <h2>Los 6 pasos (sin tocar el núcleo)</h2>
+  <div class="step"><span class="n">1</span><div><b>POST /api/admin/services</b> recibe el JSON genérico con claves extra en la raíz.</div></div>
+  <div class="step"><span class="n">2</span><div><b>Zod .passthrough()</b> valida los campos conocidos y deja pasar las claves desconocidas.</div></div>
+  <div class="step"><span class="n">3</span><div><b>ServiceFactory.create(data)</b> consolida los extras dentro de <code>metadata</code>.</div></div>
+  <div class="step"><span class="n">4</span><div><b>Repositorio Prisma</b> persiste metadata como JSONB (String JSON en SQLite dev).</div></div>
+  <div class="step"><span class="n">5</span><div><b>ServiceCard</b> lee <code>Object.entries(metadata)</code> y pinta chips con iconos heurísticos (desconocido → icono por defecto).</div></div>
+  <div class="step"><span class="n">6</span><div><b>Cero cambios de código</b> — solo data. Mismo patrón en Appointment, Tenant.config y SiteContent.</div></div>
+
+  <h2>Simulación del resultado (ServiceCard dinámica)</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>Formulario</h3>
+      <label>Nombre</label><input value="Ortodoncia invisible">
+      <label>Precio (USD)</label><input value="1800">
+      <label>Duración (min)</label><input value="40">
+      <label>alineadores</label><input value="20">
+      <label>duracion_meses</label><input value="18">
+      <label>requiere_escaneo_3d</label><input value="true">
+    </div>
+    <div class="card">
+      <h3>Tarjeta renderizada</h3>
+      <p style="font-weight:700">Ortodoncia invisible</p>
+      <p style="font-size:.78rem;color:#78716c">Alineadores transparentes removibles, con seguimiento digital mensual.</p>
+      <div style="margin:.5rem 0">
+        <span class="chip">📅 <b>Duracion meses:</b> 18</span>
+        <span class="chip">✓ <b>Requiere escaneo 3D:</b> Sí</span>
+        <span class="chip">📦 <b>Alineadores:</b> 20</span>
+      </div>
+      <p class="price">$1,800.00</p>
+      <pre>metadata = {
+  "alineadores": 20,
+  "duracion_meses": 18,
+  "requiere_escaneo_3d": true
+}</pre>
+    </div>
+  </div>
+  <p class="note">Checklist: ¿Los chips cambian al editar los valores? ¿Claves nuevas aparecen sin recargar? ¿Un valor vacío no rompe la tarjeta (tolerancia)?</p>
+</div>
+</body>
+</html>

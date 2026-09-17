@@ -1,0 +1,253 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// OdontoSite — Template SaaS Multi-Tenant para Consultorios Odontológicos
+// ═══════════════════════════════════════════════════════════════════════════
+// NOTA DE PORTABILIDAD:
+//  - En DEV usamos SQLite (único motor del sandbox). Los campos que en
+//    producción son `Json`/`JsonB` (metadata, config, items, data) se guardan
+//    aquí como String JSON — los repositorios (de)serializan de forma opaca.
+//  - Para migrar a PostgreSQL: cambiar provider a "postgresql" y los campos
+//    marcados con [JSON] a `Json`. El dominio y la aplicación NO cambian.
+//  - SQLite no soporta enums de Prisma: roles/status van como String y se
+//    validan con Zod en el borde de la API (dominio/schemas.ts).
+// ═══════════════════════════════════════════════════════════════════════════
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ── Tenant: cada odontólogo / clínica suscrita al SaaS ─────────────────────
+model Tenant {
+  id         String   @id @default(uuid())
+  slug       String   @unique // ej: "demo" → se resuelve desde la URL /public
+  name       String // "Clínica Dental Sonries Andina"
+  ruc        String? // RUC ecuatoriano (13 dígitos) — para la factura
+  address    String?
+  city       String?
+  phone      String?
+  email      String?
+  whatsapp   String? // solo dígitos con país, ej: 593991234567
+  ivaPercent Float    @default(15) // IVA configurable (Ecuador: 15% desde 2024)
+  logoUrl    String?
+  config     String   @default("{}") // [JSON] tema, slotStepMinutes, minLeadMinutes, maxAdvanceDays, invoicePrefix, mapQuery...
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  users         User[]
+  services      Service[]
+  professionals Professional[]
+  locations     Location[]
+  appointments  Appointment[]
+  orders        Order[]
+  invoices      Invoice[]
+  sequences     Sequence[]
+  siteContents  SiteContent[]
+}
+
+// ── User: usuarios del panel (SUPER_ADMIN global, OWNER/STAFF por tenant) ──
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String // bcryptjs
+  name         String?
+  role         String // "SUPER_ADMIN" | "OWNER" | "STAFF" (validado con Zod)
+  tenantId     String?
+  tenant       Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// ── Professional: odontólogo(s) del tenant (1 o varios por sede) ───────────
+model Professional {
+  id         String   @id @default(uuid())
+  tenantId   String
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  locationId String? // sede principal (opcional)
+  name       String
+  photoUrl   String?
+  specialty  String?
+  bio        String?
+  active     Boolean  @default(true)
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  location      Location?      @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  availabilities Availability[]
+  appointments  Appointment[]
+
+  @@index([tenantId, active])
+}
+
+// ── Location: sedes del consultorio ─────────────────────────────────────────
+model Location {
+  id        String   @id @default(uuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name      String // "Sede Principal — Av. Amazonas"
+  address   String
+  phone     String?
+  lat       Float?
+  lng       Float?
+  mapQuery String? // query para el mapa embebido (ej: "Av. Amazonas, Quito")
+  active    Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  professionals Professional[]
+  availabilities Availability[]
+  appointments  Appointment[]
+
+  @@index([tenantId, active])
+}
+
+// ── Service: catálogo de servicios con atributos extensibles ───────────────
+// Regla del "Servicio": campos conocidos + metadata [JSON] para atributos
+// futuros SIN recompilar (ej: requiere_escaneo_3d, sesiones, alineadores...).
+model Service {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  price       Float // USD
+  durationMin Int // minutos
+  imageUrl    String?
+  active      Boolean  @default(true)
+  metadata    String   @default("{}") // [JSON] atributos dinámicos libres
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  appointments Appointment[]
+
+  @@index([tenantId, active])
+}
+
+// ── Availability: ventana horaria semanal de cada profesional ─────────────
+// weekday: 0=domingo … 6=sábado (convención JS Date#getDay)
+// startMinute/endMinute: minutos desde medianoche (ej: 09:00 → 540)
+model Availability {
+  id            String   @id @default(uuid())
+  professionalId String
+  professional  Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  locationId    String?
+  location      Location?    @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  weekday       Int // 0–6
+  startMinute   Int // 0–1439
+  endMinute     Int // 1–1440
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([professionalId, weekday])
+}
+
+// ── Appointment: citas (PENDING/CONFIRMED/CANCELLED/BLOCKED) ────────────────
+// status BLOCKED + patientName null = bloqueo manual de agenda por el admin.
+model Appointment {
+  id            String   @id @default(uuid())
+  tenantId      String
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patientName   String?
+  patientPhone  String?
+  patientEmail  String?
+  notes         String?
+  serviceId     String?
+  service       Service? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  professionalId String
+  professional  Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  locationId    String?
+  location      Location?    @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  start         DateTime // UTC (Ecuador = UTC-5 fijo; utilidades en lib/quito-time.ts)
+  end           DateTime
+  status        String   @default("PENDING") // PENDING | CONFIRMED | CANCELLED | BLOCKED
+  source        String   @default("PUBLIC") // PUBLIC | ADMIN
+  cancelToken   String   @unique // token secreto para cancelación por el paciente
+  metadata      String   @default("{}") // [JSON] atributos futuros (regla de extensibilidad)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([tenantId, start])
+  @@index([professionalId, start])
+  @@index([tenantId, status])
+}
+
+// ── Order: pedidos enviados desde el carrito de la web pública ────────────
+model Order {
+  id              String    @id @default(uuid())
+  tenantId        String
+  tenant          Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customerName    String
+  customerPhone   String
+  customerEmail   String?
+  items           String    @default("[]") // [JSON] snapshot [{serviceId,name,price,qty}]
+  total           Float // subtotal de servicios (sin IVA)
+  status          String    @default("NEW") // NEW | CONTACTED | COMPLETED | CANCELLED
+  whatsappSentAt  DateTime?
+  metadata        String    @default("{}") // [JSON] extensibilidad futura
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  invoices Invoice[]
+
+  @@index([tenantId, status])
+}
+
+// ── Invoice: factura comercial interna (NO se envía al SRI) ───────────────
+// Numeración secuencial por tenant vía tabla Sequence (transacción atómica).
+model Invoice {
+  id           String    @id @default(uuid())
+  tenantId     String
+  tenant       Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  orderId      String?
+  order        Order?    @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  number       String    @unique // "001-001-000000123"
+  customerName String
+  customerEmail String?
+  items        String    @default("[]") // [JSON] snapshot del detalle facturado
+  subtotal     Float
+  ivaRate      Float // ej: 15 (%)
+  ivaAmount    Float
+  total        Float
+  pdfUrl       String?
+  emailSentAt  DateTime?
+  metadata     String    @default("{}") // [JSON] extensibilidad futura
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([tenantId, createdAt])
+}
+
+// ── Sequence: contador atómico por (tenant, prefix) para facturas ─────────
+model Sequence {
+  id         String @id @default(uuid())
+  tenantId   String
+  tenant     Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  prefix     String // ej: "001-001"
+  lastNumber Int    @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([tenantId, prefix])
+}
+
+// ── SiteContent: editor por secciones del sitio público ──────────────────
+// section: hero | services | about | hours | location | contact | testimonials
+// data [JSON] con las claves que cada componente consume; secciones nuevas
+// se añaden SIN tocar el núcleo (regla de extensibilidad).
+model SiteContent {
+  id        String   @id @default(uuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  section   String
+  data      String   @default("{}") // [JSON]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, section])
+}

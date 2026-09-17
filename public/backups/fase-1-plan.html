@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fase 1 · Plan Estratégico — OdontoSite (respaldo offline)</title>
+<style>
+  :root { --p:#0f766e; --bg:#fafaf9; }
+  * { box-sizing: border-box; margin: 0; }
+  body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: #1c1917; padding: 2rem; }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  h1 { font-size: 1.6rem; margin-bottom: .25rem; } h2 { font-size: 1.05rem; margin: 1.5rem 0 .75rem; color: var(--p); }
+  .badge { display: inline-block; background: #1c1917; color: #fff; font-size: .7rem; padding: .2rem .7rem; border-radius: 999px; letter-spacing: .08em; }
+  .grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); }
+  .card { background: #fff; border: 1px solid #e7e5e4; border-radius: 14px; padding: 1.1rem; }
+  .wf { border: 2px dashed #d6d3d1; border-radius: 12px; padding: 1rem; background: #fff; }
+  .bar { background: #e7e5e4; border-radius: 8px; padding: .45rem .7rem; font-size: .68rem; color: #57534e; margin-bottom: .6rem; }
+  .box { background: #f5f5f4; border: 1px solid #e7e5e4; border-radius: 8px; display: grid; place-items: center; font-size: .68rem; color: #78716c; padding: 1.4rem; }
+  .hero { height: 110px; background: #d1d5db; }
+  pre { background: #1c1917; color: #a7f3d0; padding: 1rem; border-radius: 12px; font-size: .72rem; overflow: auto; }
+  code, .mono { font-family: ui-monospace, monospace; }
+  ul { padding-left: 1.1rem; } li { font-size: .85rem; margin: .3rem 0; }
+  p.note { font-size: .8rem; color: #78716c; margin-top: .5rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="badge">RESPALDO OFFLINE · FASE 1</span>
+  <h1>Plan Estratégico — OdontoSite</h1>
+  <p class="note">Versión estática del wireframe navegable (la versión interactiva vive en la app → barra superior → Fases 1–5).</p>
+
+  <h2>Wireframe · Home pública</h2>
+  <div class="wf">
+    <div class="bar">NAVBAR: logo · Inicio Servicios Nosotros Horarios Ubicación Contacto · [Reservar CTA] [🛒]</div>
+    <div class="box hero" style="margin-bottom:.6rem">HERO — imagen de fondo + título + subtítulo + 2 CTAs</div>
+    <div class="grid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="box" style="padding:0.6rem"><div class="hero" style="height:48px;margin-bottom:.4rem"></div> Servicio A<br>$35 · 45 min<br>[Añadir]</div>
+      <div class="box" style="padding:0.6rem"><div class="hero" style="height:48px;margin-bottom:.4rem"></div> Servicio B<br>$120 · 60 min<br>[Añadir]</div>
+      <div class="box" style="padding:0.6rem"><div class="hero" style="height:48px;margin-bottom:.4rem"></div> Servicio C<br>$850 · 50 min<br>[Añadir]</div>
+    </div>
+    <div class="grid" style="margin-top:.6rem;grid-template-columns:repeat(2,1fr)">
+      <div class="box">Nosotros — equipo + stats</div>
+      <div class="box">Horarios (desde Availability)</div>
+      <div class="box">Ubicación — mapa embebido</div>
+      <div class="box">Contacto + WhatsApp</div>
+    </div>
+    <div class="bar" style="background:#1c1917;color:#d6d3d1;margin-top:.6rem">FOOTER — marca · enlaces · contacto · Powered by OdontoSite</div>
+  </div>
+
+  <h2>Wireframe · Panel admin</h2>
+  <div class="wf"><div style="display:flex;gap:.6rem">
+    <div style="width:170px">
+      <div class="bar">Sidebar</div>
+      <div class="bar">Resumen</div><div class="bar">Citas</div><div class="bar">Pedidos</div><div class="bar">Servicios</div>
+      <div class="bar">Profesionales</div><div class="bar">Sedes</div><div class="bar">Contenido</div><div class="bar">Tema</div>
+      <div class="bar">Facturación</div><div class="bar">Configuración</div>
+    </div>
+    <div style="flex:1">
+      <div class="grid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="box">Citas hoy</div><div class="box">Por confirmar</div><div class="box">Pedidos nuevos</div><div class="box">Facturado 30d</div>
+      </div>
+      <div class="box" style="margin-top:.6rem">Próximas citas + mini gráfico semanal</div>
+    </div>
+  </div></div>
+
+  <h2>Arquitectura (hexagonal) y resolución multi-tenant</h2>
+  <pre>URL pública (prod)          API
+──────────────────          ───────────────────────────────
+/demo ─→ tenant(slug)       GET /api/demo/services
+         │                   → WHERE tenantId = tenant.id
+         ├─ queries filtran   → paginación por cursor
+         │  tenantId SIEMPRE  → metadata JSONB incluida
+         └─ sesión admin: JWT con tenantId + rol</pre>
+  <div class="grid">
+    <div class="card"><h2 style="margin-top:0">Slices Zustand</h2>
+      <ul><li><span class="mono">cart</span> — carrito por tenant (persistido)</li><li><span class="mono">auth</span> — sesión + rol</li><li><span class="mono">theme</span> — tema en vivo</li><li><span class="mono">ui</span> — vista/idioma/modales</li></ul>
+    </div>
+    <div class="card"><h2 style="margin-top:0">Rutas</h2>
+      <ul><li><b>Públicas:</b> <span class="mono">/api/[slug]/{content,services,professionals,locations,availability,appointments,orders}</span></li>
+      <li><b>Privadas:</b> <span class="mono">/api/admin/*</span> (auth + tenantId)</li>
+      <li><b>Super:</b> <span class="mono">/api/super-admin/tenants</span></li></ul>
+    </div>
+  </div>
+  <p class="note">Checklist: ¿Hero con imagen? ¿Navbar con CTA? ¿8 tarjetas de servicio? ¿Footer pegado? ¿Panel con 10 secciones?</p>
+</div>
+</body>
+</html>
