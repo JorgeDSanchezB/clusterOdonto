@@ -20,7 +20,13 @@ export function HeroSection({ content, onBook }: { content: HeroContent | undefi
   const cta2 = content?.ctaSecondaryLabel || t('hero.ctaSecondary')
 
   return (
-    <section id="inicio" className="relative overflow-hidden">
+    // `isolate` crea un stacking context propio: el fondo absoluto con `-z-10`
+    // queda CONFINADO detrás del contenido de esta sección, pero nunca por
+    // detrás de los fondos (`bg-white`) de los ancestros. Sin esto, el z-index
+    // negativo escapa al stacking context raíz y el fondo del hero (imagen +
+    // velo de gradiente) queda pintado DEBAJO del fondo blanco de la página,
+    // dejando el hero invisible (texto blanco sobre blanco).
+    <section id="inicio" className="relative isolate overflow-hidden">
       <div className="absolute inset-0 -z-10">
         {content?.backgroundImageUrl ? (
           <Image

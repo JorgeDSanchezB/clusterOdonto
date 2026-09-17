@@ -73,3 +73,21 @@ Stage Summary:
 - App verificada E2E y funcionando en :3000 (GET / 200, sin errores de consola).
 - Servidor dev corriendo (única instancia). Base seed con datos demo completos.
 - Flujo completo verificado: reserva→cancelación, pedido→WhatsApp, factura→PDF→email, tema en vivo, multi-tenant (creación de tenants por super-admin disponible).
+
+---
+Task ID: 4
+Agent: agente-principal (Z.ai Code)
+Task: Diagnóstico y corrección del "espacio vacío enorme" en el hero del sitio público (reporte del dueño).
+
+Work Log:
+- Reporte del dueño: enorme espacio vacío antes del botón "Reservar cita" y, debajo de él, otro espacio vacío con dos "iconos" (una estrella y una tarjeta).
+- Diagnóstico con agent-browser + análisis de píxeles + elementsFromPoint + VLM:
+  1. CAUSA RAÍZ: el fondo absoluto del HeroSection (`absolute inset-0 -z-10`, imagen + velo de gradiente) escapa al stacking context raíz porque NINGÚN ancestro crea stacking context (section `relative` con z-index auto; wrappers estáticos). El orden de pintado CSS pinta los z-index negativos ANTES que los fondos de los bloques estáticos → el `bg-white` del wrapper de PublicSite (y `bg-background` del AppShell) se pintan ENCIMA del fondo del hero → hero completamente invisible/blanco.
+  2. El texto del hero es `text-white` (título, badge, subtítulo, botón secundario, wave) → invisible sobre blanco. Solo flotaba el botón "Reservar cita" (bg-white + texto oscuro).
+  3. Los dos "iconos" eran EMOJIS del seed (highlights: "⭐ 4.9 — más de 2.000 pacientes", "💳 Financiamiento disponible"): el texto blanco es invisible pero los emojis se pintan en color nativo (ignoran el color CSS), por eso parecían iconos sueltos en el vacío.
+- Fix: `isolate` (isolation: isolate) en el `<section id="inicio">` del HeroSection → crea stacking context propio y confina el `-z-10` dentro de la sección. Comentario explicativo añadido en el código.
+- Verificación E2E post-fix: píxeles teal correctos en desktop (1280) y móvil (390), VLM confirma hero completo (badge, título, subtítulo, 2 CTAs, highlights, wave), sección de servicios intacta, móvil sin overflow, lint 0 errores, dev.log sin errores.
+
+Stage Summary:
+- Bug crítico visual resuelto con 1 palabra de CSS (isolate). El único uso de `-z-10` del proyecto estaba en HeroSection; no hay otros casos.
+- Lección documentada: z-index negativo sin stacking context ancestro = el fondo se pinta debajo de los bg de los wrappers estáticos.
