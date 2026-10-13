@@ -34,12 +34,12 @@ export function ServicesSection({
   const subtitle = content?.subtitle || t('services.subtitle')
 
   return (
-    <section id="servicios" className="py-20 sm:py-24 t-bg-soft/60">
+    <section id="servicios" className="py-20 sm:py-24 skin-dark">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <header className="max-w-2xl mx-auto text-center">
+        <header className="max-w-2xl mx-auto text-center text-white">
           <p className="text-xs font-bold uppercase tracking-[0.18em] t-text-primary">Catálogo</p>
-          <h2 className="font-heading mt-2 text-3xl sm:text-4xl font-extrabold text-neutral-900">{title}</h2>
-          <p className="mt-3 text-neutral-500 leading-relaxed">{subtitle}</p>
+          <h2 className="font-heading mt-2 text-3xl sm:text-4xl font-extrabold text-white">{title}</h2>
+          <p className="mt-3 text-white/70 leading-relaxed">{subtitle}</p>
         </header>
 
         {services.length === 0 ? (

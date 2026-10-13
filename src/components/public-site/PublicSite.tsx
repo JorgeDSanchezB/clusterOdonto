@@ -25,6 +25,7 @@ import { SiteFooter } from './SiteFooter'
 import { CartDrawer } from './CartDrawer'
 import { BookingModal } from './BookingModal'
 import type { PublicLocation, PublicProfessional, PublicService, PublicSiteContent, PublicTenant } from './types'
+import '@/app/skin.css'
 
 export default function PublicSite({ slug }: { slug: string }) {
   const lang = useUiStore((s) => s.lang)
@@ -56,8 +57,6 @@ export default function PublicSite({ slug }: { slug: string }) {
     queryFn: () => api<PublicLocation[]>(`/api/${slug}/locations?limit=20`),
   })
 
-  // Tema efectivo: edición "en vivo" del panel (Zustand) si existe; si no, el
-  // tema guardado del tenant. Nunca se escribe al store durante el render.
   const tenantTheme = tenant?.theme
   const applied = useMemo(
     () => liveTheme ?? resolveTheme(tenantTheme),
@@ -87,29 +86,19 @@ export default function PublicSite({ slug }: { slug: string }) {
   return (
     <div
       style={{ ...themeVars, fontFamily: 'var(--font-body)' } as React.CSSProperties}
-      className="min-h-[calc(100vh-3rem)] flex flex-col bg-white text-neutral-900"
+      className="min-h-[calc(100vh-3rem)] flex flex-col skin-dark"
     >
       <SiteNavbar tenant={tenant} content={content} services={services ?? []} onBook={() => openBooking()} />
-
       <main className="flex-1">
         <HeroSection content={content?.hero} onBook={() => openBooking()} />
-        <ServicesSection
-          content={content?.services}
-          services={services ?? []}
-          onAdd={handleAdd}
-          onReserve={(svc) => openBooking(svc.id)}
-          qtyOf={qtyOf}
-          onQty={setQty}
-        />
+        <ServicesSection content={content?.services} services={services ?? []} onAdd={handleAdd} onReserve={(svc) => openBooking(svc.id)} qtyOf={qtyOf} onQty={setQty} />
         <AboutSection content={content?.about} professionals={professionals ?? []} />
         <HoursSection content={content?.hours} hours={tenant.hours} />
         <LocationSection content={content?.location} locations={locations ?? []} />
         <TestimonialsSection content={content?.testimonials} />
         <ContactSection tenant={tenant} content={content?.contact} />
       </main>
-
       <SiteFooter tenant={tenant} />
-
       <CartDrawer tenant={tenant} />
       <BookingModal tenant={tenant} services={services ?? []} professionals={professionals ?? []} locations={locations ?? []} />
     </div>

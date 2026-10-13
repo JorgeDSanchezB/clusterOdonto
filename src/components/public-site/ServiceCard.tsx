@@ -72,7 +72,7 @@ function ServiceCardInner({ service, onAdd, qtyInCart = 0, onReserve, static: is
   const handleAdd = () => onAdd?.(service, 1)
 
   return (
-    <article className="group bg-white rounded-2xl border border-neutral-200/80 shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden flex flex-col hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
+    <article className="group skin-card overflow-hidden flex flex-col hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 text-white">
       <div className="relative aspect-[16/9] bg-muted overflow-hidden">
         {service.imageUrl ? (
           <Image
@@ -87,7 +87,7 @@ function ServiceCardInner({ service, onAdd, qtyInCart = 0, onReserve, static: is
             <Sparkles className="size-8 opacity-60" aria-hidden />
           </div>
         )}
-        <div className="absolute left-3 top-3 flex gap-1.5 flex-wrap">
+        <div className="absolute left-3 top-3 flex gap-1.5 flex-wrap z-10">
           <span className="inline-flex items-center gap-1 rounded-full bg-neutral-950/80 text-white text-[11px] font-medium px-2.5 py-1 backdrop-blur">
             <Clock className="size-3" aria-hidden /> {formatDuration(service.durationMin)}
           </span>

@@ -49,8 +49,8 @@ export function SiteNavbar({
 
   return (
     <header
-      className={`sticky top-12 z-40 transition-all duration-300 ${
-        scrolled ? 'bg-white/90 backdrop-blur-md shadow-[0_1px_0_rgba(15,23,42,0.08)]' : 'bg-white'
+      className={`sticky top-12 z-40 skin-nav transition-all duration-300 ${
+        scrolled ? 'bg-black/70 backdrop-blur-md' : 'bg-transparent'
       }`}
     >
       <nav className="mx-auto max-w-7xl px-4 sm:px-6 flex items-center gap-3 h-16" aria-label="Principal">
@@ -83,7 +83,7 @@ export function SiteNavbar({
             <a
               key={l.id}
               href={`#${l.id}`}
-              className="px-3 py-2 rounded-full text-sm font-medium text-neutral-600 hover:text-neutral-950 hover:bg-neutral-100 transition-colors"
+              className="px-3 py-2 rounded-full text-sm font-medium text-white/80 hover:text-white hover:bg-white/10 transition-colors"
             >
               {t(l.key)}
             </a>
@@ -102,7 +102,7 @@ export function SiteNavbar({
           <CartButton count={hydrated ? count : 0} />
           <button
             onClick={onBook}
-            className="t-btn-primary hidden sm:inline-flex items-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-semibold"
+            className="skin-btn hidden sm:inline-flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold"
           >
             <CalendarPlus className="size-4" aria-hidden /> {t('nav.book')}
           </button>
@@ -118,7 +118,7 @@ export function SiteNavbar({
       </nav>
 
       {open && (
-        <div className="lg:hidden border-t bg-white px-4 pb-4 pt-2 animate-fade-up">
+        <div className="lg:hidden border-t border-white/10 bg-black/80 px-4 pb-4 pt-2 animate-fade-up">
           <div className="grid gap-1">
             {LINKS.map((l) => (
               <a

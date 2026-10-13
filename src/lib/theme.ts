@@ -18,6 +18,15 @@ export interface ThemePaletteDef {
 /** 5 paletas predefinidas (sin azules/índigos por decisión de diseño). */
 export const THEME_PALETTES: ThemePaletteDef[] = [
   {
+    id: 'skin',
+    label: 'Skin Glow',
+    description: 'Dark neon glow estilo skin.',
+    primary: '#0e9ae0',
+    primaryForeground: '#ffffff',
+    secondary: '#ffffff0d',
+    accent: '#35d8ff',
+  },
+  {
     id: 'turquesa',
     label: 'Turquesa Clínico',
     description: 'Fresco y profesional — el clásico dental.',

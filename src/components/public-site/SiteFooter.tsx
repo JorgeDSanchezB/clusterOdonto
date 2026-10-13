@@ -13,7 +13,7 @@ export function SiteFooter({ tenant }: { tenant: PublicTenant }) {
   const year = new Date().getFullYear()
 
   return (
-    <footer className="mt-auto bg-neutral-950 text-neutral-300">
+    <footer className="mt-auto bg-black/90 border-t border-white/10 text-neutral-300 skin-dark">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-12 grid gap-10 md:grid-cols-3">
         <div>
           <div className="flex items-center gap-2.5">
@@ -32,7 +32,7 @@ export function SiteFooter({ tenant }: { tenant: PublicTenant }) {
         </div>
 
         <nav aria-label="Enlaces del sitio" className="grid grid-cols-2 gap-2 text-sm self-center">
-          <a className="hover:text-white transition-colors" href="#inicio">{t('nav.home')}</a>
+          <a className="hover:text-white/90 transition-colors text-white/70" href="#inicio">{t('nav.home')}</a>
           <a className="hover:text-white transition-colors" href="#servicios">{t('nav.services')}</a>
           <a className="hover:text-white transition-colors" href="#nosotros">{t('nav.about')}</a>
           <a className="hover:text-white transition-colors" href="#horarios">{t('nav.hours')}</a>

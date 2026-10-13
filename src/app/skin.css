@@ -1,0 +1,73 @@
+/* ===== SKIN THEME OVERLAY ===== */
+:root {
+  --skin-bg-deep: #020204;
+  --skin-bg-panel: rgba(255,255,255,0.008);
+  --skin-text-main: #ffffff;
+  --skin-text-mute: rgba(255,255,255,0.72);
+  --skin-brand: #0f9ae0;
+  --skin-brand-2: #35d8ff;
+  --skin-accent: #8ef4ff;
+  --skin-border: rgba(255,255,255,0.105);
+  --skin-glow: 0 0 34px rgba(130,180,255,0.22);
+}
+
+/* Dark base for public site */
+.skin-dark {
+  background: var(--skin-bg-deep) !important;
+  color: var(--skin-text-main) !important;
+  min-height: 100vh;
+}
+
+/* Glass nav pill */
+.skin-nav {
+  background: rgba(255,255,255,0.008);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  backdrop-filter: blur(16px) saturate(140%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+  border: 1px solid var(--skin-border);
+}
+
+/* Hero with gradient and scrim like skin */
+.skin-hero {
+  position: relative;
+  isolation: isolate;
+}
+.skin-hero::before {
+  content: "";
+  position: absolute;
+  inset:0;
+  background: linear-gradient(105deg, color-mix(in srgb, var(--t-primary) 92%, black) 8%, color-mix(in srgb, var(--t-primary) 55%, transparent) 55%, color-mix(in srgb, var(--t-primary) 20%, transparent) 100%);
+  z-index:0;
+}
+.skin-hero .copy {
+  position:relative;
+  z-index:1;
+}
+
+/* Glow button */
+.skin-btn {
+  background: linear-gradient(180deg,#14a8c6,#0596b3);
+  color: #fff;
+  border-radius: 9999px;
+  box-shadow: inset 0 1px 0 rgba(200,245,255,0.6), 0 6px 22px rgba(20,180,225,0.55);
+  transition: transform .25s, box-shadow .25s;
+}
+.skin-btn:hover { transform: translateY(-1px); }
+
+/* Fonts */
+.skin-font { font-family: 'Poppins','Inter',ui-sans-serif,sans-serif; }
+.skin-display { font-family: 'Playfair Display', Georgia, serif; }
+
+/* Starfield subtle background */
+.skin-bg-stars {
+  position: absolute; inset:0; pointer-events:none; z-index:0;
+  background: radial-gradient(1200px 800px at 50% -10%, rgba(59,130,246,0.12), transparent 60%), radial-gradient(800px 600px at 80% 110%, rgba(139,92,246,0.10), transparent 60%);
+}
+
+/* Section glass cards */
+.skin-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--skin-border);
+  backdrop-filter: blur(12px) saturate(130%);
+  border-radius: 1rem;
+}

@@ -75,7 +75,7 @@ export default function AppShell() {
     <QueryClientProvider client={queryClient}>
       <div className="min-h-screen flex flex-col bg-background">
         {/* Barra de modo (chrome del demo, estilo page-builder) */}
-        <header className="sticky top-0 z-[60] h-12 bg-neutral-950 text-neutral-100 flex items-center gap-2 sm:gap-4 px-3 sm:px-5 border-b border-neutral-800">
+        <header className="sticky top-0 z-[60] h-12 bg-black/80 backdrop-blur-md text-neutral-100 flex items-center gap-2 sm:gap-4 px-3 sm:px-5 border-b border-white/10 skin-nav">
           <div className="flex items-center gap-2 shrink-0">
             <span className="grid place-items-center size-6 rounded-md bg-(--t-primary) text-white">
               <CalendarCheck className="size-4" />

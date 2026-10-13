@@ -26,7 +26,7 @@ export function HeroSection({ content, onBook }: { content: HeroContent | undefi
     // negativo escapa al stacking context raíz y el fondo del hero (imagen +
     // velo de gradiente) queda pintado DEBAJO del fondo blanco de la página,
     // dejando el hero invisible (texto blanco sobre blanco).
-    <section id="inicio" className="relative isolate overflow-hidden">
+    <section id="inicio" className="relative isolate overflow-hidden skin-hero skin-bg-stars skin-dark">
       <div className="absolute inset-0 -z-10">
         {content?.backgroundImageUrl ? (
           <Image
@@ -35,10 +35,10 @@ export function HeroSection({ content, onBook }: { content: HeroContent | undefi
             fill
             priority
             sizes="100vw"
-            className="object-cover"
+            className="object-cover brightness-[0.85]"
           />
         ) : (
-          <div className="absolute inset-0 t-bg-primary" />
+          <div className="absolute inset-0 bg-black/40" />
         )}
         {/* Velo de gradiente con el color del tema */}
         <div
@@ -72,13 +72,13 @@ export function HeroSection({ content, onBook }: { content: HeroContent | undefi
           <div className="mt-8 flex flex-wrap gap-3">
             <button
               onClick={onBook}
-              className="inline-flex items-center gap-2 rounded-full bg-white text-neutral-900 px-6 py-3.5 text-sm font-bold hover:shadow-xl hover:-translate-y-0.5 transition-all"
+              className="skin-btn inline-flex items-center gap-2 px-6 py-3.5 text-sm font-bold"
             >
               <CalendarPlus className="size-4.5" aria-hidden /> {cta}
             </button>
             <a
               href="#servicios"
-              className="inline-flex items-center gap-2 rounded-full border border-white/40 text-white px-6 py-3.5 text-sm font-semibold hover:bg-white/10 transition-colors"
+              className="inline-flex items-center gap-2 rounded-full border border-white/30 text-white/90 px-6 py-3.5 text-sm font-semibold hover:bg-white/10 transition-colors"
             >
               {cta2} <ArrowRight className="size-4" aria-hidden />
             </a>
